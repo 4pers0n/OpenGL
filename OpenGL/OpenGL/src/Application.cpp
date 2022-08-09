@@ -32,9 +32,9 @@ int main(void)
 
     // the actual data we put into the vertex buffer
     float positions[6] = {
-        -0.5f, -0.5f,
-         0.0f,  0.5f,
-         0.5f, -0.5f
+        -0.5f, -0.5f,  // each line is a vertex
+         0.0f,  0.5f,  // we group two elements in each line together
+         0.5f, -0.5f   // and it's called an attribute
     };
 
     // create a buffer, buffer_id is the output parameter
@@ -52,6 +52,19 @@ int main(void)
     // specify the data(we can specify the size first)
     // check the docs.GL for this function
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+    // 1. We call this function once because we only have one attribute(position)
+    // para - index : the index of this attribute
+    // para - size : how many types are inside this attribute
+    // para - type : the type of element inside this attribute
+    // para - normalized : boolean of if to normalize the data
+    // para - stride : offset to go to the next vertex
+    // para - pointer : specifies an offset of the first component
+    //                  of the first generic vertex attribute in the array
+    //                  (the offset to an attribute)
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+    // used to enable the attribute above. Again state machine,
+    // only need to specify the index. Can be called before the line above.
+    glEnableVertexAttribArray(0);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
