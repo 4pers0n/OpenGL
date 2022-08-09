@@ -2,8 +2,62 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-int main(void)
-{
+/// <summary>
+/// Compile the shader with the source code provided
+/// </summary>
+/// <param name="type">the shader type</param>
+/// <param name="source">source code for the shader</param>
+/// <returns>the shader_id if success. GL_FALSE otherwise</returns>
+static unsigned int CompileShader(unsigned int type, const std::string& source) {
+    unsigned int shader_id = glCreateShader(type);
+    const char* src = source.c_str();
+    const int length[1] = { strlen(src) };
+
+    // change the source code for the shader
+    // can be passed in as an array of pointers to char array
+    glShaderSource(shader_id, 1, &src, length);
+    glCompileShader(shader_id);
+    int status;
+    glGetShaderiv(shader_id, GL_COMPILE_STATUS, &status);
+    if (status != GL_TRUE) {
+        int length;
+        glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &length);
+        char* message = (char*) _malloca(length * sizeof(char));
+        glGetShaderInfoLog(shader_id, length, &length, message);
+        std::cerr << "Failed to compile shader" << std::endl;
+        std::cerr << message << std::endl;
+
+        return GL_FALSE;
+    }
+
+    return shader_id;
+}
+
+/// <summary>
+/// create a program with vertexshader and fragmentshader linked
+/// </summary>
+/// <param name="vertexShader">source code for vertexshader</param>
+/// <param name="fragmentShader">source code for fragmentshader</param>
+/// <returns>the program_id if success. GL_FALSE otherwise</returns>
+static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader) {
+    unsigned int program_id = glCreateProgram();
+    unsigned int vshader = CompileShader(GL_VERTEX_SHADER, vertexShader);
+    unsigned int fshader = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+    glAttachShader(program_id, vshader);
+    glAttachShader(program_id, fshader);
+    glLinkProgram(program_id);
+    glValidateProgram(program_id);
+    int status;
+    glGetProgramiv(program_id, GL_VALIDATE_STATUS, &status);
+    if (status != GL_TRUE) { return GL_FALSE; }
+
+    glDeleteShader(vshader);
+    glDeleteShader(fshader);
+
+    return program_id;
+}
+
+int main(void) {
     GLFWwindow* window;
 
     /* Initialize the library */
@@ -12,8 +66,7 @@ int main(void)
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-    if (!window)
-    {
+    if (!window) {
         glfwTerminate();
         return -1;
     }
@@ -66,13 +119,44 @@ int main(void)
     // only need to specify the index. Can be called before the line above.
     glEnableVertexAttribArray(0);
 
+    // actual source code for vertex shader
+    // specifies the locations of vertices
+    std::string vertexShader =
+        "#version 330 core\n"
+        "\n"
+        "layout(location = 0) in vec4 position;\n"
+        "\n"
+        "void main() "
+        "{\n"
+        "   gl_Position = position;\n"
+        "}\n";
+
+    // actual source code for fragment shader
+    // specifies which color to draw for each pixel
+    std::string fragmentShader =
+        "#version 330 core\n"
+        "\n"
+        "layout(location = 0) out vec4 color;\n"
+        "\n"
+        "void main() "
+        "{\n"
+        "   color = vec4(1.0, 0.0, 0.0, 1.0);\n"
+        "}\n";
+
+    unsigned int program_id = CreateShader(vertexShader, fragmentShader);
+
+    // use the prgram_id in the current rendering state
+    // this tells glDrawArrays to use our shader(program) instead of
+    // a default one that our gpu manufacture implemented
+    glUseProgram(program_id);
+
     /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        
+        // actually draw the stuff stored in the vertex buffer
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -80,6 +164,9 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
+
+    // use this to clean the program we created
+    glDeleteProgram(program_id);
     glfwTerminate();
     return 0;
 }
