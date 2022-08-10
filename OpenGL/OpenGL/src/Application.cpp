@@ -127,10 +127,19 @@ int main(void) {
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     // the actual data we put into the vertex buffer
-    float positions[6] = {
-        -0.5f, -0.5f,  // each line is a vertex
-         0.0f,  0.5f,  // we group two elements in each line together
-         0.5f, -0.5f   // and it's called an attribute
+    float positions[] = {
+        -0.5f, -0.5f,  // each line is a vertex                          index:0
+         0.5f, -0.5f,  // we group two elements in each line together    index:1
+         0.5f,  0.5f,  // and it's called an attribute                   index:2
+        -0.5f,  0.5f,  //                                                index:3
+         0.0f,  1.0f   //                                                index:4
+    };
+
+    // index buffer (used to remove redundant vertices)
+    unsigned int indices[] = {
+        0, 1, 2,
+        2, 3, 0,
+        2, 4, 3
     };
 
     // create a buffer, buffer_id is the output parameter
@@ -147,7 +156,7 @@ int main(void) {
     glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
     // specify the data(we can specify the size first)
     // check the docs.GL for this function
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 10 * sizeof(float), positions, GL_STATIC_DRAW);
     // 1. We call this function once because we only have one attribute(position)
     // para - index : the index of this attribute
     // para - size : how many types are inside this attribute
@@ -161,6 +170,13 @@ int main(void) {
     // used to enable the attribute above. Again state machine,
     // only need to specify the index. Can be called before the line above.
     glEnableVertexAttribArray(0);
+
+    // index buffer object
+    // has to be unsigned!!!
+    unsigned int ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 9 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
     
     // Visual studio puts the working directory to ProjectDir by default in debugging mode
     // So we use "res/shaders" here instead of "../res/shaders"
@@ -183,8 +199,7 @@ int main(void) {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // actually draw the stuff stored in the vertex buffer
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, nullptr);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
