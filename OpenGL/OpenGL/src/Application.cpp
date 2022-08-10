@@ -1,6 +1,49 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
+// struct holding source code for two shaders
+struct ShaderProgramSource {
+    std::string VertexSource;
+    std::string FragmentSource;
+};
+
+/// <summary>
+/// Parse the shader file into a vertex shader and a fragment shader
+/// </summary>
+/// <param name="file_path">path to the shader file</param>
+/// <returns>a struct holding two source code for the shaders</returns>
+static ShaderProgramSource ParseShader(const std::string& file_path) {
+    std::ifstream stream(file_path);
+
+    enum class ShaderType {
+        NONE = -1, VERTEX = 0, FRAGMENT = 1
+    };
+
+    std::string line;
+    std::stringstream ss[2];
+    ShaderType type = ShaderType::NONE;
+
+    while (getline(stream, line)) {
+        if (line.find("#shader") != line.npos) {
+            if (line.find("vertex") != line.npos) {
+                type = ShaderType::VERTEX;
+            }
+            else if (line.find("fragment") != line.npos) {
+                type = ShaderType::FRAGMENT;
+            }
+        }
+        else {
+            ss[(int)type] << line << '\n';
+        }
+    }
+
+    stream.close();
+    return ShaderProgramSource{ ss[0].str(), ss[1].str() };
+}
 
 /// <summary>
 /// Compile the shader with the source code provided
@@ -118,32 +161,17 @@ int main(void) {
     // used to enable the attribute above. Again state machine,
     // only need to specify the index. Can be called before the line above.
     glEnableVertexAttribArray(0);
+    
+    // Visual studio puts the working directory to ProjectDir by default in debugging mode
+    // So we use "res/shaders" here instead of "../res/shaders"
+    ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
 
-    // actual source code for vertex shader
-    // specifies the locations of vertices
-    std::string vertexShader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) in vec4 position;\n"
-        "\n"
-        "void main() "
-        "{\n"
-        "   gl_Position = position;\n"
-        "}\n";
+    std::cout << "VERTEX Shader:" << std::endl;
+    std::cout << source.VertexSource << std::endl;
+    std::cout << "FRAGMENT Shader:" << std::endl;
+    std::cout << source.FragmentSource << std::endl;
 
-    // actual source code for fragment shader
-    // specifies which color to draw for each pixel
-    std::string fragmentShader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) out vec4 color;\n"
-        "\n"
-        "void main() "
-        "{\n"
-        "   color = vec4(1.0, 0.0, 0.0, 1.0);\n"
-        "}\n";
-
-    unsigned int program_id = CreateShader(vertexShader, fragmentShader);
+    unsigned int program_id = CreateShader(source.VertexSource, source.FragmentSource);
 
     // use the prgram_id in the current rendering state
     // this tells glDrawArrays to use our shader(program) instead of
