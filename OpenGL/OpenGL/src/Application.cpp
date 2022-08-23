@@ -5,14 +5,18 @@
 #include <string>
 #include <sstream>
 #define ASSERT(x) if(!(x)) __debugbreak();
+#define GLCall(x) GLClearError();\
+    x;\
+    ASSERT(GLLogCall(#x, __FILE__, __LINE__));
 
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
 
-static bool GLLogCall() {
+static bool GLLogCall(const char* function, const char* file, int line) {
     while (GLenum error = glGetError()) {
-        std::cout << "[OpenGL Error] (" << error << ")" << std::endl;
+        std::cout << "[OpenGL Error] (" << error << "):" << function <<
+            " " << file << ":" << line << std::endl;
         return false;
     }
     return true;
@@ -65,14 +69,14 @@ static ShaderProgramSource ParseShader(const std::string& file_path) {
 /// <param name="source">source code for the shader</param>
 /// <returns>the shader_id if success. GL_FALSE otherwise</returns>
 static unsigned int CompileShader(unsigned int type, const std::string& source) {
-    unsigned int shader_id = glCreateShader(type);
+    GLCall(unsigned int shader_id = glCreateShader(type));
     const char* src = source.c_str();
     const int length[1] = { strlen(src) };
 
     // change the source code for the shader
     // can be passed in as an array of pointers to char array
-    glShaderSource(shader_id, 1, &src, length);
-    glCompileShader(shader_id);
+    GLCall(glShaderSource(shader_id, 1, &src, length));
+    GLCall(glCompileShader(shader_id));
     int status;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &status);
     if (status != GL_TRUE) {
@@ -96,19 +100,19 @@ static unsigned int CompileShader(unsigned int type, const std::string& source) 
 /// <param name="fragmentShader">source code for fragmentshader</param>
 /// <returns>the program_id if success. GL_FALSE otherwise</returns>
 static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader) {
-    unsigned int program_id = glCreateProgram();
+    GLCall(unsigned int program_id = glCreateProgram());
     unsigned int vshader = CompileShader(GL_VERTEX_SHADER, vertexShader);
     unsigned int fshader = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
-    glAttachShader(program_id, vshader);
-    glAttachShader(program_id, fshader);
-    glLinkProgram(program_id);
-    glValidateProgram(program_id);
+    GLCall(glAttachShader(program_id, vshader));
+    GLCall(glAttachShader(program_id, fshader));
+    GLCall(glLinkProgram(program_id));
+    GLCall(glValidateProgram(program_id));
     int status;
-    glGetProgramiv(program_id, GL_VALIDATE_STATUS, &status);
+    GLCall(glGetProgramiv(program_id, GL_VALIDATE_STATUS, &status));
     if (status != GL_TRUE) { return GL_FALSE; }
 
-    glDeleteShader(vshader);
-    glDeleteShader(fshader);
+    GLCall(glDeleteShader(vshader));
+    GLCall(glDeleteShader(fshader));
 
     return program_id;
 }
@@ -157,7 +161,7 @@ int main(void) {
 
     // create a buffer, buffer_id is the output parameter
     unsigned int buffer_id;
-    glGenBuffers(1, &buffer_id);
+    GLCall(glGenBuffers(1, &buffer_id));
     if (buffer_id == GL_INVALID_VALUE) {
         std::cerr << "Error when generating a buffer" << std::endl;
         glfwTerminate();
@@ -166,10 +170,10 @@ int main(void) {
     // bind the buffer to an array buffer inside vram
     // enter the state of having this buffer (no need to specify the buffer later)
     // (imagine seleting a layer in Photoshop)
-    glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer_id));
     // specify the data(we can specify the size first)
     // check the docs.GL for this function
-    glBufferData(GL_ARRAY_BUFFER, 10 * sizeof(float), positions, GL_STATIC_DRAW);
+    GLCall(glBufferData(GL_ARRAY_BUFFER, 10 * sizeof(float), positions, GL_STATIC_DRAW));
     // 1. We call this function once because we only have one attribute(position)
     // para - index : the index of this attribute
     // para - size : how many types are inside this attribute
@@ -179,17 +183,17 @@ int main(void) {
     // para - pointer : specifies an offset of the first component
     //                  of the first generic vertex attribute in the array
     //                  (the offset to an attribute)
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));
     // used to enable the attribute above. Again state machine,
     // only need to specify the index. Can be called before the line above.
-    glEnableVertexAttribArray(0);
+    GLCall(glEnableVertexAttribArray(0));
 
     // index buffer object
     // has to be unsigned!!!
     unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 9 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    GLCall(glGenBuffers(1, &ibo));
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 9 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
     
     // Visual studio puts the working directory to ProjectDir by default in debugging mode
     // So we use "res/shaders" here instead of "../res/shaders"
@@ -205,16 +209,14 @@ int main(void) {
     // use the prgram_id in the current rendering state
     // this tells glDrawArrays to use our shader(program) instead of
     // a default one that our gpu manufacture implemented
-    glUseProgram(program_id);
+    GLCall(glUseProgram(program_id));
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-        GLClearError();
-        glDrawElements(GL_TRIANGLES, 9, GL_INT, nullptr);
-        ASSERT(GLLogCall());
+        GLCall(glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, nullptr));
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -224,7 +226,7 @@ int main(void) {
     }
 
     // use this to clean the program we created
-    glDeleteProgram(program_id);
-    glfwTerminate();
+    GLCall(glDeleteProgram(program_id));
+    GLCall(glfwTerminate());
     return 0;
 }
