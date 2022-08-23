@@ -4,15 +4,18 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#define ASSERT(x) if(!(x)) __debugbreak();
 
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
 
-static void GLCheckError() {
+static bool GLLogCall() {
     while (GLenum error = glGetError()) {
         std::cout << "[OpenGL Error] (" << error << ")" << std::endl;
+        return false;
     }
+    return true;
 }
 
 // struct holding source code for two shaders
@@ -211,7 +214,7 @@ int main(void) {
 
         GLClearError();
         glDrawElements(GL_TRIANGLES, 9, GL_INT, nullptr);
-        GLCheckError();
+        ASSERT(GLLogCall());
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
