@@ -134,6 +134,8 @@ int main(void) {
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    glfwSwapInterval(1);
+
     /* Initialize GLEW */
     if (glewInit() != GLEW_OK) {
         std::cerr << "Error when initializing GLEW" << std::endl;
@@ -211,10 +213,31 @@ int main(void) {
     // a default one that our gpu manufacture implemented
     GLCall(glUseProgram(program_id));
 
+    // use this to get the location of the uniform before actually sending
+    // any data to it. (each uniform will be assigned a unique location)
+    GLCall(int location = glGetUniformLocation(program_id, "u_Color"));
+    ASSERT(location != 1);  // CAUTION: if uniform is unused, the location will still be -1
+    // use this to send the data to the uniform variable inside the shader
+    // 4f means 4 floats
+    GLCall(glUniform4f(location, 0.8f, 0.3f, 0.2f, 1.0f));
+
+    // used for animation
+    float r = 0.8f;
+    float increment = 0.01;
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
         GLCall(glClear(GL_COLOR_BUFFER_BIT));
+
+        if (r > 1.0f) {
+            increment = -0.01f;
+        }
+        else if (r < 0.0f) {
+            increment = 0.01f;
+        }
+        r += increment;
+        GLCall(glUniform4f(location, r, 0.3f, 0.2f, 1.0f));
 
         GLCall(glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, nullptr));
 
@@ -227,6 +250,6 @@ int main(void) {
 
     // use this to clean the program we created
     GLCall(glDeleteProgram(program_id));
-    GLCall(glfwTerminate());
+    glfwTerminate();
     return 0;
 }
