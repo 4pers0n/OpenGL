@@ -124,6 +124,10 @@ int main(void) {
     if (!glfwInit())
         return -1;
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
     if (!window) {
@@ -160,6 +164,11 @@ int main(void) {
         2, 3, 0,
         2, 4, 3
     };
+
+    // vertex array 
+    unsigned int vao;
+    GLCall(glGenVertexArrays(1, &vao));
+    GLCall(glBindVertexArray(vao));
 
     // create a buffer, buffer_id is the output parameter
     unsigned int buffer_id;
@@ -238,6 +247,10 @@ int main(void) {
         }
         r += increment;
         GLCall(glUniform4f(location, r, 0.3f, 0.2f, 1.0f));
+
+        // multiple bindings here in case there are many buffers
+        GLCall(glBindVertexArray(vao));
+        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
         GLCall(glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, nullptr));
 
