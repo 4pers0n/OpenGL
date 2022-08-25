@@ -4,23 +4,10 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#define ASSERT(x) if(!(x)) __debugbreak();
-#define GLCall(x) GLClearError();\
-    x;\
-    ASSERT(GLLogCall(#x, __FILE__, __LINE__));
 
-static void GLClearError() {
-    while (glGetError() != GL_NO_ERROR);
-}
-
-static bool GLLogCall(const char* function, const char* file, int line) {
-    while (GLenum error = glGetError()) {
-        std::cout << "[OpenGL Error] (" << error << "):" << function <<
-            " " << file << ":" << line << std::endl;
-        return false;
-    }
-    return true;
-}
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 // struct holding source code for two shaders
 struct ShaderProgramSource {
@@ -170,21 +157,8 @@ int main(void) {
     GLCall(glGenVertexArrays(1, &vao));
     GLCall(glBindVertexArray(vao));
 
-    // create a buffer, buffer_id is the output parameter
-    unsigned int buffer_id;
-    GLCall(glGenBuffers(1, &buffer_id));
-    if (buffer_id == GL_INVALID_VALUE) {
-        std::cerr << "Error when generating a buffer" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    // bind the buffer to an array buffer inside vram
-    // enter the state of having this buffer (no need to specify the buffer later)
-    // (imagine seleting a layer in Photoshop)
-    GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer_id));
-    // specify the data(we can specify the size first)
-    // check the docs.GL for this function
-    GLCall(glBufferData(GL_ARRAY_BUFFER, 10 * sizeof(float), positions, GL_STATIC_DRAW));
+    VertexBuffer* vb = new VertexBuffer(positions, 5 * 2 * sizeof(float));
+
     // 1. We call this function once because we only have one attribute(position)
     // para - index : the index of this attribute
     // para - size : how many types are inside this attribute
@@ -199,12 +173,7 @@ int main(void) {
     // only need to specify the index. Can be called before the line above.
     GLCall(glEnableVertexAttribArray(0));
 
-    // index buffer object
-    // has to be unsigned!!!
-    unsigned int ibo;
-    GLCall(glGenBuffers(1, &ibo));
-    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 9 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
+    IndexBuffer* ib = new IndexBuffer(indices, 3 * 3);
     
     // Visual studio puts the working directory to ProjectDir by default in debugging mode
     // So we use "res/shaders" here instead of "../res/shaders"
@@ -250,7 +219,6 @@ int main(void) {
 
         // multiple bindings here in case there are many buffers
         GLCall(glBindVertexArray(vao));
-        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
         GLCall(glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, nullptr));
 
@@ -263,6 +231,8 @@ int main(void) {
 
     // use this to clean the program we created
     GLCall(glDeleteProgram(program_id));
+    delete(vb);
+    delete(ib);
     glfwTerminate();
     return 0;
 }
