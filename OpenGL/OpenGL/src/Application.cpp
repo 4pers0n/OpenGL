@@ -8,6 +8,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 // struct holding source code for two shaders
 struct ShaderProgramSource {
@@ -152,26 +153,13 @@ int main(void) {
         2, 4, 3
     };
 
-    // vertex array 
-    unsigned int vao;
-    GLCall(glGenVertexArrays(1, &vao));
-    GLCall(glBindVertexArray(vao));
+    VertexArray* va = new VertexArray;
 
     VertexBuffer* vb = new VertexBuffer(positions, 5 * 2 * sizeof(float));
-
-    // 1. We call this function once because we only have one attribute(position)
-    // para - index : the index of this attribute
-    // para - size : how many types are inside this attribute
-    // para - type : the type of element inside this attribute
-    // para - normalized : boolean of if to normalize the data
-    // para - stride : offset to go to the next vertex
-    // para - pointer : specifies an offset of the first component
-    //                  of the first generic vertex attribute in the array
-    //                  (the offset to an attribute)
-    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));
-    // used to enable the attribute above. Again state machine,
-    // only need to specify the index. Can be called before the line above.
-    GLCall(glEnableVertexAttribArray(0));
+    
+    VertexBufferLayout* layout = new VertexBufferLayout;
+    layout->Push<float>(2);
+    va->AddBuffer(*vb, *layout);
 
     IndexBuffer* ib = new IndexBuffer(indices, 3 * 3);
     
@@ -201,7 +189,12 @@ int main(void) {
 
     // used for animation
     float r = 0.8f;
-    float increment = 0.01;
+    float increment = 0.01f;
+
+    // because va has all the information stored in it
+    va->UnBind();
+    ib->UnBind();
+    vb->UnBind();
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -218,7 +211,7 @@ int main(void) {
         GLCall(glUniform4f(location, r, 0.3f, 0.2f, 1.0f));
 
         // multiple bindings here in case there are many buffers
-        GLCall(glBindVertexArray(vao));
+        va->Bind();
 
         GLCall(glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, nullptr));
 
@@ -233,6 +226,8 @@ int main(void) {
     GLCall(glDeleteProgram(program_id));
     delete(vb);
     delete(ib);
+    delete(va);
+    delete(layout);
     glfwTerminate();
     return 0;
 }
