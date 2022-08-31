@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Renderer.h"
+#include "VertexBufferLayout.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "Shader.h"
@@ -78,10 +79,12 @@ int main(void) {
     ib->UnBind();
     vb->UnBind();
 
+    Renderer* renderer = new Renderer;
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
-        GLCall(glClear(GL_COLOR_BUFFER_BIT));
+        renderer->Clear();
 
         if (r > 1.0f) {
             increment = -0.01f;
@@ -90,13 +93,9 @@ int main(void) {
             increment = 0.01f;
         }
         r += increment;
-
-        // multiple bindings here in case there are many buffers
-        va->Bind();
-
         shader->SetUniform4f("u_Color", r, 0.3f, 0.2f, 1.0f);
 
-        GLCall(glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, nullptr));
+        renderer->Draw(*va, *ib, *shader);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -111,6 +110,7 @@ int main(void) {
     delete(va);
     delete(layout);
     delete(shader);
+    delete(renderer);
     glfwTerminate();
     return 0;
 }
