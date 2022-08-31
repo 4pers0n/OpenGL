@@ -7,6 +7,7 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "Shader.h"
+#include "Texture.h"
 #include "VertexArray.h"
 
 int main(void) {
@@ -43,32 +44,35 @@ int main(void) {
 
     // the actual data we put into the vertex buffer
     float positions[] = {
-        -0.5f, -0.5f,  // each line is a vertex                          index:0
-         0.5f, -0.5f,  // we group two elements in each line together    index:1
-         0.5f,  0.5f,  // and it's called an attribute                   index:2
-        -0.5f,  0.5f,  //                                                index:3
-         0.0f,  1.0f   //                                                index:4
+        -0.5f, -0.5f, 0.0f, 0.0f,  // each line is a vertex                          index:0
+         0.5f, -0.5f, 1.0f, 0.0f, // we group two elements in each line together    index:1
+         0.5f,  0.5f, 1.0f, 1.0f, // and it's called an attribute                   index:2
+        -0.5f,  0.5f, 0.0f, 1.0f, //                                     index:4
     };
 
     // index buffer (used to remove redundant vertices)
     unsigned int indices[] = {
         0, 1, 2,
-        2, 3, 0,
-        2, 4, 3
+        2, 3, 0
     };
 
     VertexArray* va = new VertexArray;
 
-    VertexBuffer* vb = new VertexBuffer(positions, 5 * 2 * sizeof(float));
+    VertexBuffer* vb = new VertexBuffer(positions, 4 * 4 * sizeof(float));
     
     VertexBufferLayout* layout = new VertexBufferLayout;
     layout->Push<float>(2);
+    layout->Push<float>(2);
     va->AddBuffer(*vb, *layout);
 
-    IndexBuffer* ib = new IndexBuffer(indices, 3 * 3);
+    IndexBuffer* ib = new IndexBuffer(indices, 2 * 3);
 
-    Shader* shader = new Shader("res/shaders/Basic.shader");
+    Shader* shader = new Shader("res/shaders/Basic.glsl");
     shader->Bind();
+
+    Texture* texture = new Texture("res/textures/BasicTexture.png");
+    texture->Bind();
+    shader->SetUniform1i("u_Texture", 0);  // 0 because the texture slot is 0
 
     // used for animation
     float r = 0.8f;
@@ -110,6 +114,7 @@ int main(void) {
     delete(va);
     delete(layout);
     delete(shader);
+    delete(texture);
     delete(renderer);
     glfwTerminate();
     return 0;
