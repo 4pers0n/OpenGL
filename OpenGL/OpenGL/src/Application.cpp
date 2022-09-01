@@ -31,6 +31,8 @@ int main(void) {
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    glfwSetFramebufferSizeCallback(window, Renderer::framebuffer_size_callback);
+
     glfwSwapInterval(1);
 
     /* Initialize GLEW */
