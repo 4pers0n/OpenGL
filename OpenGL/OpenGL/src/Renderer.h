@@ -29,8 +29,15 @@ public:
      * \param width the width of the viewport
      * \param height the height of the viewport
      */
-    static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-    {
+    static void FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
         GLCall(glViewport(0, 0, width, height));
+    }
+
+    static void EnableWireframeMode() {
+        GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+    }
+
+    static void DisableWireframeMode() {
+        GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
     }
 };
