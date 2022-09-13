@@ -48,9 +48,9 @@ int main(void) {
     // the actual data we put into the vertex buffer
     float positions[] = {
         -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // position | texture coordinate | custom color
-         0.5f, -0.5f, 4.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, 4.0f, 4.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f, 0.0f, 4.0f, 0.0f, 0.0f, 0.0f
+         0.5f, -0.5f, 2.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+         0.5f,  0.5f, 2.0f, 2.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f, 0.0f, 2.0f, 0.0f, 0.0f, 0.0f
     };
 
     // index buffer (used to remove redundant vertices)
