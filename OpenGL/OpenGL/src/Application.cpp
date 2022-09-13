@@ -47,10 +47,10 @@ int main(void) {
 
     // the actual data we put into the vertex buffer
     float positions[] = {
-        -0.5f, -0.5f, 0.0f, 0.0f,  // each line is a vertex                          index:0
-         0.5f, -0.5f, 1.0f, 0.0f, // we group two elements in each line together    index:1
-         0.5f,  0.5f, 1.0f, 1.0f, // and it's called an attribute                   index:2
-        -0.5f,  0.5f, 0.0f, 1.0f, //                                     index:4
+        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // position | texture coordinate | custom color
+         0.5f, -0.5f, 4.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+         0.5f,  0.5f, 4.0f, 4.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f, 0.0f, 4.0f, 0.0f, 0.0f, 0.0f
     };
 
     // index buffer (used to remove redundant vertices)
@@ -61,11 +61,12 @@ int main(void) {
 
     VertexArray* va = new VertexArray;
 
-    VertexBuffer* vb = new VertexBuffer(positions, 4 * 4 * sizeof(float));
+    VertexBuffer* vb = new VertexBuffer(positions, 7 * 4 * sizeof(float));
     
     VertexBufferLayout* layout = new VertexBufferLayout;
     layout->Push<float>(2);
     layout->Push<float>(2);
+    layout->Push<float>(3);
     va->AddBuffer(*vb, *layout);
 
     IndexBuffer* ib = new IndexBuffer(indices, 2 * 3);
@@ -73,9 +74,12 @@ int main(void) {
     Shader* shader = new Shader("res/shaders/Basic.glsl");
     shader->Bind();
 
-    Texture* texture = new Texture("res/textures/BasicTexture.png");
-    texture->Bind();
-    shader->SetUniform1i("u_Texture", 0);  // 0 because the texture slot is 0
+    Texture* texture1 = new Texture("res/textures/BasicTexture.png");
+    Texture* texture2 = new Texture("res/textures/awesomeface.png");
+    texture1->Bind(0);
+    shader->SetUniform1i("u_Texture1", 0);  // 0 because the texture slot is 0
+    texture2->Bind(1);
+    shader->SetUniform1i("u_Texture2", 1);
 
     // used for animation
     float r = 0.8f;
@@ -117,7 +121,8 @@ int main(void) {
     delete(va);
     delete(layout);
     delete(shader);
-    delete(texture);
+    delete(texture1);
+    delete(texture2);
     delete(renderer);
     glfwTerminate();
     return 0;
