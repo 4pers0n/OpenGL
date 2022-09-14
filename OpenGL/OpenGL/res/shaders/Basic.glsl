@@ -8,8 +8,10 @@ layout(location = 2) in vec3 aColor;
 out vec2 v_TexCoord;
 out vec3 Color;
 
+uniform mat4 u_MVP;
+
 void main() {
-   gl_Position = position;
+   gl_Position = position * u_MVP;
    v_TexCoord = texCoord;
    Color = aColor;
 };
@@ -27,6 +29,6 @@ uniform sampler2D u_Texture1;
 uniform sampler2D u_Texture2;
 
 void main() {
-	vec4 texColor = mix(texture(u_Texture1, v_TexCoord), texture(u_Texture2, v_TexCoord), 0.2f) * vec4(Color, 1.0f);
+	vec4 texColor = mix(texture(u_Texture1, v_TexCoord), texture(u_Texture2, v_TexCoord), 1.0f) * vec4(Color, 1.0f);
 	color = texColor;
 };

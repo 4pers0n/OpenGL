@@ -1,5 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 #include <iostream>
 
 #include "Renderer.h"
@@ -59,6 +61,11 @@ int main(void) {
         2, 3, 0
     };
 
+    // Enable blending
+    GLCall(glEnable(GL_BLEND));
+    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    GLCall(glBlendEquation(GL_FUNC_ADD));
+
     VertexArray* va = new VertexArray;
 
     VertexBuffer* vb = new VertexBuffer(positions, 7 * 4 * sizeof(float));
@@ -74,12 +81,17 @@ int main(void) {
     Shader* shader = new Shader("res/shaders/Basic.glsl");
     shader->Bind();
 
+    // set the projection matrix to fix the problem related to aspect ratio
+    glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+    shader->SetUniformMat4f("u_MVP", proj);
+
     Texture* texture1 = new Texture("res/textures/BasicTexture.png");
     Texture* texture2 = new Texture("res/textures/awesomeface.png");
-    texture1->Bind(0);
-    shader->SetUniform1i("u_Texture1", 0);  // 0 because the texture slot is 0
+    //texture1->Bind(0);
+    //shader->SetUniform1i("u_Texture1", 0);  // 0 because the texture slot is 0
     texture2->Bind(1);
     shader->SetUniform1i("u_Texture2", 1);
+
 
     // used for animation
     float r = 0.8f;
