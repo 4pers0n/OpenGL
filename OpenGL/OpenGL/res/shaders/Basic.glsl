@@ -11,7 +11,7 @@ out vec3 Color;
 uniform mat4 u_MVP;
 
 void main() {
-   gl_Position = position * u_MVP;
+   gl_Position = u_MVP * position;
    v_TexCoord = texCoord;
    Color = aColor;
 };

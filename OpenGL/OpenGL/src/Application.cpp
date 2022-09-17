@@ -2,6 +2,11 @@
 #include <GLFW/glfw3.h>
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/string_cast.hpp"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include <iostream>
 
 #include "Renderer.h"
@@ -81,10 +86,6 @@ int main(void) {
     Shader* shader = new Shader("res/shaders/Basic.glsl");
     shader->Bind();
 
-    // set the projection matrix to fix the problem related to aspect ratio
-    glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-    shader->SetUniformMat4f("u_MVP", proj);
-
     Texture* texture1 = new Texture("res/textures/BasicTexture.png");
     Texture* texture2 = new Texture("res/textures/awesomeface.png");
     //texture1->Bind(0);
@@ -95,7 +96,7 @@ int main(void) {
 
     // used for animation
     float r = 0.8f;
-    float increment = 0.01f;
+    float increment = 0.01f; 
 
     // because va has all the information stored in it
     va->UnBind();
@@ -104,10 +105,23 @@ int main(void) {
 
     Renderer* renderer = new Renderer;
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init((char*)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS));
+
+    glm::vec3 translation(-0.5f, 0.0f, 0.0f);
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
         renderer->Clear();
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
         if (r > 1.0f) {
             increment = -0.01f;
@@ -116,9 +130,25 @@ int main(void) {
             increment = 0.01f;
         }
         r += increment;
+
+        {
+            ImGui::SliderFloat3("Translation", &translation.x, -1.0f, 1.0f);
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        }
+
+        // set the projection matrix to fix the problem related to aspect ratio
+        glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+        proj = glm::translate(proj, translation);
+
+        shader->SetUniformMat4f("u_MVP", proj);
+
+
         shader->SetUniform4f("u_Color", r, 0.3f, 0.2f, 1.0f);
 
         renderer->Draw(*va, *ib, *shader);
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -136,6 +166,9 @@ int main(void) {
     delete(texture1);
     delete(texture2);
     delete(renderer);
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }
