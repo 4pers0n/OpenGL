@@ -10,6 +10,7 @@
 #include "GLBasics/VertexBufferLayout.h"
 #include "GLBasics/IndexBuffer.h"
 #include "GLBasics/Shader.h"
+#include "GLBasics/Texture.h"
 
 constexpr int MAJOR_VERSION = 3;
 constexpr int MINOR_VERSION = 3;
@@ -52,19 +53,32 @@ int main(void)
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    float vertices[] = {
-        0.5f, -0.5f,
-        -0.5f, -0.5f,
-        0.0f, 0.5f
+    const float vertices[] = {
+      // positions      texture coordinates
+         0.5f, -0.5f,   1.0f, 0.0f,
+        -0.5f, -0.5f,   0.0f, 0.0f,
+        -0.5f,  0.5f,   0.0f, 1.0f,
+         0.5f,  0.5f,   1.0f, 1.0f
     };
 
-    auto vbo = new GLBasics::VertexBuffer(vertices, 6 * sizeof(float));
-    auto vbl = new GLBasics::VertexBufferLayout();
-    vbl->Push<float>(2);
-    auto vao = new GLBasics::VertexArray();
-    vao->BindBuffer(*vbo, *vbl);
+    const unsigned int indices[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
 
-    auto shader = new GLBasics::Shader("res/shaders/MainVertex.glsl", "res/shaders/MainFragment.glsl");
+    const auto vbo = new GLBasics::VertexBuffer(vertices, 4 * 4 * sizeof(float));
+    const auto vbl = new GLBasics::VertexBufferLayout();
+    vbl->Push<float>(2);
+    vbl->Push<float>(2);
+    const auto ibo = new GLBasics::IndexBuffer(indices, 6);
+    const auto vao = new GLBasics::VertexArray();
+    vao->BindBuffer(*vbo, *vbl, *ibo);
+
+    const auto shader = new GLBasics::Shader("res/shaders/MainVertex.glsl", "res/shaders/MainFragment.glsl");
+
+    const auto texture = new GLBasics::Texture("res/textures/container.jpg");
+    texture->Bind(0);
+    shader->SetUniform1i("sampler2D", 0);
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
@@ -80,7 +94,7 @@ int main(void)
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         }
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        GLCall(glDrawElements(GL_TRIANGLES, ibo->GetCount(), GL_UNSIGNED_INT, 0));
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -94,7 +108,9 @@ int main(void)
     delete(vao);
     delete(vbo);
     delete(vbl);
+    delete(ibo);
     delete(shader);
+    delete(texture);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

@@ -66,9 +66,18 @@ namespace GLBasics
         void SetUniformMat4f(const std::string& uniformName, const glm::mat4& matrix) const;
 
     private:
+        // Retrieves uniform location from glProgram
         int GetUniformLocation(const std::string& uniformName) const;
+
+        // Compiles a shader of the given type and source code
+        // Returns the shader identifier
         unsigned int CompileShader(unsigned int type, std::string& shaderSource) const;
+
+        // Attaches and link both shaders
+        // Returns the program identifier
         unsigned int CreateProgram(unsigned int vertexShader, unsigned int fragmentShader) const;
+
+        // Read the plain string from the given file path and return it
         std::string ParseShader(const std::string& filePath) const;
 
     };  // class Shader

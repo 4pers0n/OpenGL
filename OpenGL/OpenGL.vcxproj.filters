@@ -30,6 +30,12 @@
     <ClCompile Include="src\GLBasics\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\GLBasics\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utils\StbImageImpl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\GLBasics\VertexBuffer.h">
@@ -50,10 +56,21 @@
     <ClInclude Include="src\GLBasics\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\GLBasics\Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />
     <None Include="res\shaders\MainVertex.glsl" />
     <None Include="res\shaders\MainFragment.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\textures\awesomeface.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\textures\container.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
