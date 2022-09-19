@@ -161,6 +161,8 @@
     <ClCompile Include="src\GLBasics\Texture.cpp" />
     <ClCompile Include="src\GLBasics\VertexArray.cpp" />
     <ClCompile Include="src\GLBasics\VertexBuffer.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\Utils\MainUtils.cpp" />
     <ClCompile Include="src\Utils\StbImageImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -170,7 +172,9 @@
     <ClInclude Include="src\GLBasics\VertexArray.h" />
     <ClInclude Include="src\GLBasics\VertexBuffer.h" />
     <ClInclude Include="src\GLBasics\VertexBufferLayout.h" />
+    <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\Utils\GLDebugHelper.h" />
+    <ClInclude Include="src\Utils\MainUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />
