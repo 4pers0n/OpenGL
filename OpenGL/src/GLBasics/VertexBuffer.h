@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../Utils/GLDebugHelper.h"
-
 namespace GLBasics
 {
     /**
@@ -10,13 +8,14 @@ namespace GLBasics
     class VertexBuffer
     {
     private:
-        unsigned int m_RendererID;  // object identifier
+        unsigned int m_RendererID;
+
     public:
 
         /**
          * \brief Constructs a VBO. Client is responsible for freeing the data
-         * \param data a const void pointer pointing to the beginning of the buffer
-         * \param size the total bytes of the buffer
+         * \param data A const void pointer pointing to the beginning of the buffer
+         * \param size The total bytes of the buffer
          */
         VertexBuffer(const void* data, unsigned int size);
 
@@ -34,5 +33,6 @@ namespace GLBasics
          * \brief UnBind the buffer stored in this VBO
          */
         void UnBind() const;
-    };
-}
+
+    };  // class VertexBuffer
+}  // namespace GLBasics

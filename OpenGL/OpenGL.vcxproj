@@ -156,12 +156,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\GLBasics\IndexBuffer.cpp" />
+    <ClCompile Include="src\GLBasics\Shader.cpp" />
+    <ClCompile Include="src\GLBasics\VertexArray.cpp" />
     <ClCompile Include="src\GLBasics\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\GLBasics\IndexBuffer.h" />
+    <ClInclude Include="src\GLBasics\Shader.h" />
+    <ClInclude Include="src\GLBasics\VertexArray.h" />
     <ClInclude Include="src\GLBasics\VertexBuffer.h" />
     <ClInclude Include="src\GLBasics\VertexBufferLayout.h" />
     <ClInclude Include="src\Utils\GLDebugHelper.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="imgui.ini" />
+    <None Include="res\shaders\MainFragment.glsl" />
+    <None Include="res\shaders\MainVertex.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

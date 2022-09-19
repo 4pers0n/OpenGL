@@ -1,5 +1,7 @@
 #include "VertexBuffer.h"
 
+#include "../Utils/GLDebugHelper.h"
+
 namespace GLBasics
 {
 	VertexBuffer::VertexBuffer(const void* data, unsigned size)
@@ -24,4 +26,4 @@ namespace GLBasics
     {
         GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
     }
-}
+}  //namespace GLBasics

@@ -1,30 +1,42 @@
 #pragma once
 
-#include "../Utils/GLDebugHelper.h"
-
 #include <vector>
+
+#include "../Utils/GLDebugHelper.h"
 
 namespace GLBasics
 {
+
+    /**
+     * \brief Represent a single property inside of a single vertex
+     */
     struct VertexBufferElement
     {
 	    unsigned int type;
 	    unsigned int count;
-	    unsigned int normalized;  // memory alignment
+	    unsigned int normalized;  // (boolean but int for memory alignment)
 
+        /**
+	     * \brief Get the type size from a GL type
+	     * \param type An OpenGL type that is one of GL_FLOAT, GL_UNSIGNED_INT, and GL_UNSIGNED_BYTE 
+	     * \return An unsigned integer that is the size of the OpenGL type 
+	     */
 	    static unsigned int GetTypeSize(unsigned int type)
         {
 		    switch (type)
 	        {
-		    case GL_FLOAT:			return sizeof(GLfloat);
-		    case GL_UNSIGNED_INT:	return sizeof(GLuint);
-		    case GL_UNSIGNED_BYTE:	return sizeof(GLubyte);
-		    }
-		    ASSERT(false);
+		        case GL_FLOAT:			return sizeof(GLfloat);
+		        case GL_UNSIGNED_INT:	return sizeof(GLuint);
+		        case GL_UNSIGNED_BYTE:	return sizeof(GLubyte);
+                default:                ASSERT(false);  // other types are unsupported;
+            }
 		    return 0;
 	    }
-    };
+    };  // struct VertexBufferElement
 
+    /**
+	 * \brief Represent the whole layout for all the properties that a single vertex has
+	 */
 	class VertexBufferLayout
     {
 	private:
@@ -40,9 +52,13 @@ namespace GLBasics
 		template<typename T>
 		void Push(unsigned int count)
 	    {
-			ASSERT(false);
+			ASSERT(false);  // other types unsupported
 		}
 
+        /**
+		 * \brief Add a new property to a layout with the type float
+		 * \param count The number of floats
+		 */
 		template<>
 		void Push<float>(unsigned int count)
 	    {
@@ -50,6 +66,10 @@ namespace GLBasics
 			m_Stride += count * VertexBufferElement::GetTypeSize(GL_FLOAT);
 		}
 
+		/**
+		 * \brief Add a new property to a layout with the type unsigned int
+		 * \param count The number of unsigned ints
+		 */
 		template<>
 		void Push<unsigned int>(unsigned int count)
 	    {
@@ -57,6 +77,10 @@ namespace GLBasics
 			m_Stride += count * VertexBufferElement::GetTypeSize(GL_UNSIGNED_INT);
 		}
 
+		/**
+		 * \brief Add a new property to a layout with the type char
+		 * \param count The number of chars
+		 */
 		template<>
 		void Push<unsigned char>(unsigned int count)
 	    {
@@ -64,10 +88,19 @@ namespace GLBasics
 			m_Stride += count * VertexBufferElement::GetTypeSize(GL_UNSIGNED_BYTE);
 		}
 
+        /**
+		 * \brief Get the stride of all the properties added
+		 * \return An unsigned int representing the stride
+		 */
 		inline unsigned int GetStride() const { return m_Stride; }
-		inline const std::vector<VertexBufferElement>& GetElements() const
+
+        /**
+		 * \brief Get all the properties added in this layout if needed
+		 * \return A vector of all the elements stored as VertexBufferElement
+		 */
+		inline std::vector<VertexBufferElement> GetElements() const
 	    {
 			return m_Elements;
 		}
-	};
-}
+	};  // class VertexBufferLayout
+}  // namespace GLBasics

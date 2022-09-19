@@ -1,7 +1,15 @@
-#include "Gl/glew.h"
-#include "GLFW/glfw3.h"
-#include "ImGui/imgui_impl_glfw.h"
-#include "ImGui/imgui_impl_opengl3.h"
+#include <iostream>
+
+#include <Gl/glew.h>
+#include <GLFW/glfw3.h>
+#include <ImGui/imgui_impl_glfw.h>
+#include <ImGui/imgui_impl_opengl3.h>
+
+#include "GLBasics/VertexArray.h"
+#include "GLBasics/VertexBuffer.h"
+#include "GLBasics/VertexBufferLayout.h"
+#include "GLBasics/IndexBuffer.h"
+#include "GLBasics/Shader.h"
 
 constexpr int MAJOR_VERSION = 3;
 constexpr int MINOR_VERSION = 3;
@@ -42,6 +50,22 @@ int main(void)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init((char*)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS));  // NOLINT(clang-diagnostic-cast-qual)
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    float vertices[] = {
+        0.5f, -0.5f,
+        -0.5f, -0.5f,
+        0.0f, 0.5f
+    };
+
+    auto vbo = new GLBasics::VertexBuffer(vertices, 6 * sizeof(float));
+    auto vbl = new GLBasics::VertexBufferLayout();
+    vbl->Push<float>(2);
+    auto vao = new GLBasics::VertexArray();
+    vao->BindBuffer(*vbo, *vbl);
+
+    auto shader = new GLBasics::Shader("res/shaders/MainVertex.glsl", "res/shaders/MainFragment.glsl");
+
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
@@ -56,6 +80,8 @@ int main(void)
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         }
 
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -64,6 +90,11 @@ int main(void)
         // Poll for and process events
         glfwPollEvents();
     }
+
+    delete(vao);
+    delete(vbo);
+    delete(vbl);
+    delete(shader);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
