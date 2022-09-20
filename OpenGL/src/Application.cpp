@@ -6,7 +6,6 @@
 #include <ImGui/imgui_impl_opengl3.h>
 #include <GLM/glm.hpp>
 #include <GLM/gtx/string_cast.hpp>
-#include <GLM/gtc/matrix_transform.hpp>
 
 #include "GLBasics/VertexArray.h"
 #include "GLBasics/VertexBuffer.h"
@@ -15,24 +14,26 @@
 #include "GLBasics/Shader.h"
 #include "GLBasics/Texture.h"
 #include "Utils/MainUtils.h"
+#include "Maths/Projection.h"
 #include "Renderer.h"
 
-constexpr int MAJOR_VERSION = 3;
-constexpr int MINOR_VERSION = 3;
 
 int main(void)
 {
     // Initialize the GLFW library
     if (!glfwInit())
+    {
+        std::cerr << "GLFW initialization failed" << std::endl;
         return -1;
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, MAJOR_VERSION);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, MINOR_VERSION);
+    }
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Utils::DEFAULT_MAJOR_VERSION);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, Utils::DEFAULT_MINOR_VERSION);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(Utils::DEFAULT_WINDOW_WIDTH, Utils::DEFAULT_WINDOW_HEIGHT, "OpenGL", nullptr, nullptr);
     if (!window)
     {
+        std::cerr << "GLFW failed to create window" << std::endl;
         glfwTerminate();
         return -1;
     }
@@ -43,6 +44,7 @@ int main(void)
     // Initialize the GLEW library
     if (glewInit() != GLEW_OK)
     {
+        std::cerr << "GLEW initialization failed" << std::endl;
         glfwTerminate();
         return -1;
     }
@@ -89,9 +91,15 @@ int main(void)
 
     const auto renderer = new Renderer();
 
+    // ImGui environment
+    int scaleMode = 0;
+    bool useBlending = false;
+    bool useWireFrameMode = false;
+
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
+        //                             green and grey ish color
         renderer->Clear(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
 
         // Render here
@@ -100,37 +108,38 @@ int main(void)
         ImGui::NewFrame();
 
         {
+            ImGui::Begin("Stats:");
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::Text("Window Width: %d", Utils::windowWidth);
             ImGui::Text("Window Height: %d", Utils::windowHeight);
+            ImGui::End();
+        }
+        
+        {
+            ImGui::Begin("Debug");
+            ImGui::SliderInt("Scaling Mode", &scaleMode, 0, 2);
+            ImGui::Text("0: Aspect Ratio, 1: Full Screen, 2: No Scaling");
+            ImGui::Text("");
+            ImGui::Checkbox("Use OpenGL blending", &useBlending);
+            ImGui::Checkbox("Enable wireframe mode", &useWireFrameMode);
+            ImGui::End();
         }
 
         // This keeps the rendered output always having a correct aspect ratio
-        {
-            float projectedWidth = 0.0f, projectedHeight = 0.0f;
-            if (Utils::windowWidth < Utils::windowHeight)
-            {
-                projectedWidth = 2.0f;
-                projectedHeight = 1.0f * Utils::windowHeight / Utils::windowWidth * 2.0f;
-            }
-            else
-            {
-                projectedHeight = 2.0f;
-                projectedWidth = 1.0f * Utils::windowWidth / Utils::windowHeight * 2.0f;
-            }
+        glm::mat4 proj = Maths::GetScaleMatrix(static_cast<Maths::ScaleMode>(scaleMode), Utils::windowWidth, Utils::windowHeight);
+        shader->SetUniformMat4f("aProj", proj);
 
-            ImGui::Text("Normalized Window Width: %f", projectedWidth);
-            ImGui::Text("Normalized Window Height: %f", projectedHeight);
+        if (useBlending) { renderer->EnableBlending(); }
+        else { renderer->DisableBlending(); }
+        if (useWireFrameMode) { renderer->EnableWireFrameMode(); }
+        else { renderer->DisableWireFrameMode(); }
 
-            glm::mat4 proj = glm::ortho(-projectedWidth / 2, projectedWidth / 2,
-                -projectedHeight / 2, projectedHeight / 2, -1.0f, 1.0f);
-
-            shader->SetUniformMat4f("aProj", proj);
-        }
         renderer->DrawElements(GL_TRIANGLES, *vao, *shader, ibo->GetCount());
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        Utils::ProcessInput(window);
 
         // Swap front and back buffers
         glfwSwapBuffers(window);

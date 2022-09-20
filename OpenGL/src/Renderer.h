@@ -38,4 +38,24 @@ public:
 	 */
 	void Clear(const glm::vec4& color);
 
+    /**
+	 * \brief Enable OpenGL blending. Use adding and src_alpha for source and one_minus_src_alpha for destination
+	 */
+	void EnableBlending();
+
+    /**
+	 * \brief Disable OpenGL blending
+	 */
+	void DisableBlending();
+
+    /**
+	 * \brief Change PolygonMode to GL_LINE
+	 */
+	void EnableWireFrameMode();
+
+    /**
+	 * \brief Change PolygonMode to GL_FILL
+	 */
+	void DisableWireFrameMode();
+
 }; // class Renderer

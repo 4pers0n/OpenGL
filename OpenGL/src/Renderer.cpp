@@ -21,3 +21,25 @@ void Renderer::Clear(const glm::vec4& color)
 	GLCall(glClearColor(color.r, color.g, color.b, color.a));
 	GLCall(glClear(GL_COLOR_BUFFER_BIT));
 }
+
+void Renderer::EnableBlending()
+{
+	GLCall(glEnable(GL_BLEND));
+	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	GLCall(glBlendEquation(GL_FUNC_ADD));
+}
+
+void Renderer::DisableBlending()
+{
+	GLCall(glDisable(GL_BLEND));
+}
+
+void Renderer::EnableWireFrameMode()
+{
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+void Renderer::DisableWireFrameMode()
+{
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
