@@ -15,6 +15,8 @@
 #include "GLBasics/Texture.h"
 #include "Utils/MainUtils.h"
 #include "Maths/Projection.h"
+#include "Maths/View.h"
+#include "Maths/Model.h"
 #include "Renderer.h"
 
 
@@ -91,10 +93,16 @@ int main(void)
 
     const auto renderer = new Renderer();
 
-    // ImGui environment
+    // ImGui environment begins
     int scaleMode = 0;
+
+    float modelRotation = -30.0f;
+    glm::vec3 cameraPosition(0.0f, 0.0f, 3.0f);
+
+    bool usePerspectiveProjection = true;
     bool useBlending = false;
     bool useWireFrameMode = false;
+    // ImGui environment ends
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
@@ -117,33 +125,36 @@ int main(void)
         
         {
             ImGui::Begin("Debug");
+            ImGui::Checkbox("Use perspective projection", &usePerspectiveProjection);
             ImGui::SliderInt("Scaling Mode", &scaleMode, 0, 2);
             ImGui::Text("0: Aspect Ratio, 1: Full Screen, 2: No Scaling");
             ImGui::Text("");
+            ImGui::SliderFloat("Model rotation around x axis", &modelRotation, -180.0f, 180.0f);
+            ImGui::SliderFloat3("Camera position", &cameraPosition.x, -10.0f, 10.0f);
             ImGui::Checkbox("Use OpenGL blending", &useBlending);
             ImGui::Checkbox("Enable wireframe mode", &useWireFrameMode);
             ImGui::End();
         }
 
-        // This keeps the rendered output always having a correct aspect ratio
-        glm::mat4 transform = Maths::GetScaleMatrix(static_cast<Maths::ScaleMode>(scaleMode), Utils::windowWidth, Utils::windowHeight);
+        Maths::ModelMatrix model;
+        model.Rotate(modelRotation, glm::vec3(1.0f, 0.0f, 0.0f));
+        Maths::ViewMatrix view;
+        view.Translate(cameraPosition);
+        glm::mat4 projection;
+        if (usePerspectiveProjection)
+            projection = Maths::GetPerspProjMatrix(static_cast<Maths::ScaleMode>(scaleMode), 45.0f, Utils::windowWidth, Utils::windowHeight);
+        else
+            projection = Maths::GetOrthoProjMatrix(static_cast<Maths::ScaleMode>(scaleMode), Utils::windowWidth, Utils::windowHeight);
 
-        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-        transform = glm::translate(transform, glm::vec3((float)cos(glfwGetTime()), 0.0f, 0.0f));
-
-        shader->SetUniformMat4f("transform", transform);
+        shader->SetUniformMat4f("model", model.GetMatrix());
+        shader->SetUniformMat4f("view", view.GetMatrix());
+        shader->SetUniformMat4f("projection", projection);
 
         if (useBlending) { renderer->EnableBlending(); }
         else { renderer->DisableBlending(); }
         if (useWireFrameMode) { renderer->EnableWireFrameMode(); }
         else { renderer->DisableWireFrameMode(); }
 
-        renderer->DrawElements(GL_TRIANGLES, *vao, *shader, ibo->GetCount());
-
-        transform = Maths::GetScaleMatrix(static_cast<Maths::ScaleMode>(scaleMode), Utils::windowWidth, Utils::windowHeight);
-        transform = glm::translate(transform, glm::vec3(-0.5f, 0.5f, 0.0f));
-        transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f) * (float)abs(sin(glfwGetTime())));
-        shader->SetUniformMat4f("transform", transform);
         renderer->DrawElements(GL_TRIANGLES, *vao, *shader, ibo->GetCount());
 
         ImGui::Render();
