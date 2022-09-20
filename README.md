@@ -3,10 +3,12 @@ A personal learning journal of OpenGL
 
 
 # Features
+ - Fully organized code with great abstraction and capsulation.
+
  - An OpenGL playground that is integrated with ImGui. Can be used to experience with basic
     functionalities of OpenGL such as textures, blending, depth testing, and MVP matrices.
 
- - Orthographic and perspective projection in 3D
+ - Orthographic and perspective projection in 3D.
 
  ![Render output1](Render%20output1.png)
  ![Render output2](Render%20output2.png)
