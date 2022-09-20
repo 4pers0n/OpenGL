@@ -126,14 +126,24 @@ int main(void)
         }
 
         // This keeps the rendered output always having a correct aspect ratio
-        glm::mat4 proj = Maths::GetScaleMatrix(static_cast<Maths::ScaleMode>(scaleMode), Utils::windowWidth, Utils::windowHeight);
-        shader->SetUniformMat4f("aProj", proj);
+        glm::mat4 transform = Maths::GetScaleMatrix(static_cast<Maths::ScaleMode>(scaleMode), Utils::windowWidth, Utils::windowHeight);
+
+        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        transform = glm::translate(transform, glm::vec3((float)cos(glfwGetTime()), 0.0f, 0.0f));
+
+        shader->SetUniformMat4f("transform", transform);
 
         if (useBlending) { renderer->EnableBlending(); }
         else { renderer->DisableBlending(); }
         if (useWireFrameMode) { renderer->EnableWireFrameMode(); }
         else { renderer->DisableWireFrameMode(); }
 
+        renderer->DrawElements(GL_TRIANGLES, *vao, *shader, ibo->GetCount());
+
+        transform = Maths::GetScaleMatrix(static_cast<Maths::ScaleMode>(scaleMode), Utils::windowWidth, Utils::windowHeight);
+        transform = glm::translate(transform, glm::vec3(-0.5f, 0.5f, 0.0f));
+        transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f) * (float)abs(sin(glfwGetTime())));
+        shader->SetUniformMat4f("transform", transform);
         renderer->DrawElements(GL_TRIANGLES, *vao, *shader, ibo->GetCount());
 
         ImGui::Render();
