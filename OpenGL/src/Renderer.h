@@ -58,4 +58,14 @@ public:
 	 */
 	void DisableWireFrameMode();
 
+    /**
+	 * \brief Enable OpenGL depth testing
+	 */
+	void EnableDepthTest();
+
+    /**
+	 * \brief Disable OpenGl depth testing
+	 */
+	void DisableDepthTest();
+
 }; // class Renderer

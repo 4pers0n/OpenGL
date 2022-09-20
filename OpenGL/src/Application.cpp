@@ -61,12 +61,48 @@ int main(void)
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    const float vertices[] = {
-      // positions      texture coordinates
-         0.5f, -0.5f,   1.0f, 0.0f,
-        -0.5f, -0.5f,   0.0f, 0.0f,
-        -0.5f,  0.5f,   0.0f, 1.0f,
-         0.5f,  0.5f,   1.0f, 1.0f
+    float vertices[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
     const unsigned int indices[] = {
@@ -74,9 +110,9 @@ int main(void)
         2, 3, 0
     };
 
-    const auto vbo = new GLBasics::VertexBuffer(vertices, 4 * 4 * sizeof(float));
+    const auto vbo = new GLBasics::VertexBuffer(vertices, 36 * 5 * sizeof(float));
     const auto vbl = new GLBasics::VertexBufferLayout();
-    vbl->Push<float>(2);
+    vbl->Push<float>(3);
     vbl->Push<float>(2);
     const auto ibo = new GLBasics::IndexBuffer(indices, 6);
     const auto vao = new GLBasics::VertexArray();
@@ -97,12 +133,17 @@ int main(void)
     int scaleMode = 0;
 
     float modelRotation = -30.0f;
+    bool useAutoRotation = false;
     glm::vec3 cameraPosition(0.0f, 0.0f, 3.0f);
 
     bool usePerspectiveProjection = true;
     bool useBlending = false;
     bool useWireFrameMode = false;
+    bool useDepthTest = false;
     // ImGui environment ends
+
+    Maths::ModelMatrix model;
+    Maths::ViewMatrix view;
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
@@ -129,16 +170,22 @@ int main(void)
             ImGui::SliderInt("Scaling Mode", &scaleMode, 0, 2);
             ImGui::Text("0: Aspect Ratio, 1: Full Screen, 2: No Scaling");
             ImGui::Text("");
+            ImGui::Checkbox("Use auto rotation for model", &useAutoRotation);
             ImGui::SliderFloat("Model rotation around x axis", &modelRotation, -180.0f, 180.0f);
             ImGui::SliderFloat3("Camera position", &cameraPosition.x, -10.0f, 10.0f);
             ImGui::Checkbox("Use OpenGL blending", &useBlending);
             ImGui::Checkbox("Enable wireframe mode", &useWireFrameMode);
+            ImGui::Checkbox("Enable OpenGL depth test", &useDepthTest);
             ImGui::End();
         }
 
-        Maths::ModelMatrix model;
-        model.Rotate(modelRotation, glm::vec3(1.0f, 0.0f, 0.0f));
-        Maths::ViewMatrix view;
+        model.SetMatrix(glm::mat4(1.0f));
+        if (useAutoRotation)
+            model.Rotate((float)glfwGetTime() * 30.0f, glm::vec3(0.5f, 1.0f, 0.0f));
+        else
+            model.Rotate(modelRotation, glm::vec3(1.0f, 0.0f, 0.0f));
+
+        view.SetMatrix(glm::mat4(1.0f));
         view.Translate(cameraPosition);
         glm::mat4 projection;
         if (usePerspectiveProjection)
@@ -154,8 +201,10 @@ int main(void)
         else { renderer->DisableBlending(); }
         if (useWireFrameMode) { renderer->EnableWireFrameMode(); }
         else { renderer->DisableWireFrameMode(); }
+        if (useDepthTest) { renderer->EnableDepthTest(); }
+        else { renderer->DisableDepthTest(); }
 
-        renderer->DrawElements(GL_TRIANGLES, *vao, *shader, ibo->GetCount());
+        renderer->DrawArrays(GL_TRIANGLES, *vbo, *shader, 36);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

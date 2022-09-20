@@ -19,7 +19,7 @@ void Renderer::DrawElements(const unsigned mode, const VertexArray& va, const Sh
 void Renderer::Clear(const glm::vec4& color)
 {
 	GLCall(glClearColor(color.r, color.g, color.b, color.a));
-	GLCall(glClear(GL_COLOR_BUFFER_BIT));
+	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
 void Renderer::EnableBlending()
@@ -42,4 +42,14 @@ void Renderer::EnableWireFrameMode()
 void Renderer::DisableWireFrameMode()
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void Renderer::EnableDepthTest()
+{
+	glEnable(GL_DEPTH_TEST);
+}
+
+void Renderer::DisableDepthTest()
+{
+	glDisable(GL_DEPTH_TEST);
 }
