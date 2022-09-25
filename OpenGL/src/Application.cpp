@@ -110,6 +110,19 @@ int main(void)
         2, 3, 0
     };
 
+    glm::vec3 cubePositions[] = {
+    glm::vec3(0.0f,  0.0f,  0.0f),
+    glm::vec3(2.0f,  5.0f, -15.0f),
+    glm::vec3(-1.5f, -2.2f, -2.5f),
+    glm::vec3(-3.8f, -2.0f, -12.3f),
+    glm::vec3(2.4f, -0.4f, -3.5f),
+    glm::vec3(-1.7f,  3.0f, -7.5f),
+    glm::vec3(1.3f, -2.0f, -2.5f),
+    glm::vec3(1.5f,  2.0f, -2.5f),
+    glm::vec3(1.5f,  0.2f, -1.5f),
+    glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+
     const auto vbo = new GLBasics::VertexBuffer(vertices, 36 * 5 * sizeof(float));
     const auto vbl = new GLBasics::VertexBufferLayout();
     vbl->Push<float>(3);
@@ -142,8 +155,7 @@ int main(void)
     bool useDepthTest = false;
     // ImGui environment ends
 
-    Maths::ModelMatrix model;
-    Maths::ViewMatrix view;
+    
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
@@ -179,21 +191,17 @@ int main(void)
             ImGui::End();
         }
 
-        model.SetMatrix(glm::mat4(1.0f));
-        if (useAutoRotation)
-            model.Rotate((float)glfwGetTime() * 30.0f, glm::vec3(0.5f, 1.0f, 0.0f));
-        else
-            model.Rotate(modelRotation, glm::vec3(1.0f, 0.0f, 0.0f));
-
-        view.SetMatrix(glm::mat4(1.0f));
-        view.Translate(cameraPosition);
+        Maths::ViewMatrix view(glm::mat4(1.0f));
+        const float radius = 10.0f;
+        float camX = cos(glfwGetTime()) * radius;
+        float camZ = sin(glfwGetTime()) * radius;
+        view.SetMatrix(glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
         glm::mat4 projection;
         if (usePerspectiveProjection)
             projection = Maths::GetPerspProjMatrix(static_cast<Maths::ScaleMode>(scaleMode), 45.0f, Utils::windowWidth, Utils::windowHeight);
         else
             projection = Maths::GetOrthoProjMatrix(static_cast<Maths::ScaleMode>(scaleMode), Utils::windowWidth, Utils::windowHeight);
 
-        shader->SetUniformMat4f("model", model.GetMatrix());
         shader->SetUniformMat4f("view", view.GetMatrix());
         shader->SetUniformMat4f("projection", projection);
 
@@ -204,7 +212,30 @@ int main(void)
         if (useDepthTest) { renderer->EnableDepthTest(); }
         else { renderer->DisableDepthTest(); }
 
-        renderer->DrawArrays(GL_TRIANGLES, *vbo, *shader, 36);
+        for (int i = 0; i < 10; i++)
+        {
+            Maths::ModelMatrix model(glm::mat4(1.0f));
+            model.Translate(cubePositions[i]);
+            if (i % 3 == 0)
+            {
+                if (useAutoRotation)
+                {
+                    model.Rotate((float)glfwGetTime() * 50.0f, glm::vec3(1.0f, 0.3f, 0.5f));
+                }
+                else
+                {
+                    model.Rotate(modelRotation, glm::vec3(1.0f, 0.3f, 0.5f));
+                }
+            }
+            else
+            {
+                float angle = 20.0f * i;
+                model.Rotate(angle, glm::vec3(1.0f, 0.3f, 0.5f));
+            }
+            shader->SetUniformMat4f("model", model.GetMatrix());
+
+            renderer->DrawArrays(GL_TRIANGLES, *vbo, *shader, 36);
+        }
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
