@@ -44,6 +44,7 @@ int main(void)
     glfwSetFramebufferSizeCallback(window, Utils::FramebufferSizeCallback);
     glfwSetMouseButtonCallback(window, Utils::MouseButtonClickCallback);
     glfwSetCursorPosCallback(window, Utils::MouseMovementCallback);
+    glfwSetScrollCallback(window, Utils::MouseScrollCallback);
         
     // Initialize the GLEW library
     if (glewInit() != GLEW_OK)
@@ -203,7 +204,7 @@ int main(void)
 
         glm::mat4 projection;
         if (usePerspectiveProjection)
-            projection = Maths::GetPerspProjMatrix(static_cast<Maths::ScaleMode>(scaleMode), 45.0f, Utils::windowWidth, Utils::windowHeight);
+            projection = Maths::GetPerspProjMatrix(static_cast<Maths::ScaleMode>(scaleMode), Utils::fieldOfView, Utils::windowWidth, Utils::windowHeight);
         else
             projection = Maths::GetOrthoProjMatrix(static_cast<Maths::ScaleMode>(scaleMode), Utils::windowWidth, Utils::windowHeight);
 

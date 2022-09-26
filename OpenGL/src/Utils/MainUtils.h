@@ -21,6 +21,9 @@ namespace Utils
     // Stores a pointer to the camera that will be used
     extern Maths::ViewMatrix* camera;
 
+    // Stores the current field of view value
+    extern float fieldOfView;
+
     /**
      * \brief Change the glViewPort based on new width and height.
      *  Should be called whenever there is a window resize
@@ -46,6 +49,8 @@ namespace Utils
      * \param mods Modifications
      */
     void MouseButtonClickCallback(GLFWwindow* window, int button, int action, int mods);
+
+    void MouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
     /**
      * \brief Process user input like key press and mouse click

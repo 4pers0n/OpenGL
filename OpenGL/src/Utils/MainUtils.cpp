@@ -9,6 +9,8 @@ namespace Utils
 
     float deltaTime = 0.0f;
 
+    float fieldOfView = 45.0f;
+
     Maths::ViewMatrix* camera = nullptr;
 
     void FramebufferSizeCallback(GLFWwindow* window, const int width, const int height)
@@ -50,6 +52,16 @@ namespace Utils
         {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
+    }
+
+    void MouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+    {
+        fieldOfView -= (float)yoffset;
+        if (fieldOfView < 1.0f)
+            fieldOfView = 1.0f;
+
+        if (fieldOfView > 45.0f)
+            fieldOfView = 45.0f;
     }
 
     void ProcessInput(GLFWwindow* window)
