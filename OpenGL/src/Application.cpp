@@ -42,7 +42,9 @@ int main(void)
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, Utils::FramebufferSizeCallback);
-
+    glfwSetMouseButtonCallback(window, Utils::MouseButtonClickCallback);
+    glfwSetCursorPosCallback(window, Utils::MouseMovementCallback);
+        
     // Initialize the GLEW library
     if (glewInit() != GLEW_OK)
     {
@@ -140,6 +142,9 @@ int main(void)
     texture1->Bind(1);
     shader->SetUniform1i("sampler1", 1);
 
+    const auto camera = new Maths::ViewMatrix({0.0f, 0.0f, -3.0f}, {0.0f, 1.0f, 0.0f}, 0.0f, 0.0f);
+    Utils::UpdateCamera(camera);
+
     const auto renderer = new Renderer();
 
     // ImGui environment begins
@@ -160,6 +165,11 @@ int main(void)
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
+        static float lastFrame = 0.0f;
+        const auto currentFrame = static_cast<float>(glfwGetTime());
+        Utils::deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         //                             green and grey ish color
         renderer->Clear(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
 
@@ -191,18 +201,13 @@ int main(void)
             ImGui::End();
         }
 
-        Maths::ViewMatrix view(glm::mat4(1.0f));
-        const float radius = 10.0f;
-        float camX = cos(glfwGetTime()) * radius;
-        float camZ = sin(glfwGetTime()) * radius;
-        view.SetMatrix(glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
         glm::mat4 projection;
         if (usePerspectiveProjection)
             projection = Maths::GetPerspProjMatrix(static_cast<Maths::ScaleMode>(scaleMode), 45.0f, Utils::windowWidth, Utils::windowHeight);
         else
             projection = Maths::GetOrthoProjMatrix(static_cast<Maths::ScaleMode>(scaleMode), Utils::windowWidth, Utils::windowHeight);
 
-        shader->SetUniformMat4f("view", view.GetMatrix());
+        shader->SetUniformMat4f("view", camera->GetMatrix());
         shader->SetUniformMat4f("projection", projection);
 
         if (useBlending) { renderer->EnableBlending(); }
@@ -255,6 +260,7 @@ int main(void)
     delete(shader);
     delete(texture0);
     delete(texture1);
+    delete(camera);
     delete(renderer);
 
     ImGui_ImplOpenGL3_Shutdown();
